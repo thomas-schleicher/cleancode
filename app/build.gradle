@@ -16,6 +16,12 @@ repositories {
 }
 
 dependencies {
+    // // Use Jline for fancy input and output
+    // implementation 'org.jline:jline:3.29.0'
+
+    // Use Jsoup for HTML parsing
+    implementation 'org.jsoup:jsoup:1.18.3'
+
     // Use JUnit Jupiter for testing.
     testImplementation libs.junit.jupiter
 
