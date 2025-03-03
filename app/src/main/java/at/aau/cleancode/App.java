@@ -1,7 +1,8 @@
 package at.aau.cleancode;
 
-import at.aau.cleancode.utility.Validator;
 import java.util.Scanner;
+
+import at.aau.cleancode.utility.Validator;
 
 public class App {
     private static final Scanner SCANNER = new Scanner(System.in);
@@ -37,7 +38,8 @@ public class App {
                 String depthInput = SCANNER.nextLine();
                 int depth = Validator.checkInputDepth(depthInput) ? Integer.parseInt(depthInput) : 0;
                 System.out.println("Crawling URL: " + url + " to a depth of " + depth);
-                //todo: @Thomas: crawl here mit url und depth
+                SiteCrawler crawler = new SiteCrawler();
+                crawler.crawl(url, depth);
                 break;
             case 2:
                 System.out.println("Exiting the program");
