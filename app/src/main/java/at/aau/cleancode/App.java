@@ -28,27 +28,35 @@ public class App {
     private static void performAction(int action) {
         switch (action) {
             case 1:
-                System.out.println("Enter a URL to be crawled: ");
-                String url = SCANNER.nextLine();
-                if (!Validator.checkURL(url)) {
-                    System.out.println("Invalid URL");
-                    return;
-                }
-                System.out.println("Enter the Depth the crawler should crawl (optional): ");
-                String depthInput = SCANNER.nextLine();
-                int depth = Validator.checkInputDepth(depthInput) ? Integer.parseInt(depthInput) : 0;
-                System.out.println("Crawling URL: " + url + " to a depth of " + depth);
-                SiteCrawler crawler = new SiteCrawler();
-                crawler.crawl(url, depth);
+                performCrawlAction();
                 break;
             case 2:
-                System.out.println("Exiting the program");
-                SCANNER.close();
-                System.exit(0);
+                performExitAction();
                 break;
             default:
                 System.out.println("Invalid Action");
                 break;
         }
+    }
+
+    private static void performExitAction() {
+        System.out.println("Exiting the program");
+        SCANNER.close();
+        System.exit(0);
+    }
+
+    private static void performCrawlAction() {
+        System.out.println("Enter a URL to be crawled: ");
+        String url = SCANNER.nextLine();
+        if (!Validator.checkURL(url)) {
+            System.out.println("Invalid URL");
+            return;
+        }
+        System.out.println("Enter the Depth the crawler should crawl (optional): ");
+        String depthInput = SCANNER.nextLine();
+        int depth = Validator.checkInputDepth(depthInput) ? Integer.parseInt(depthInput) : 0;
+        System.out.println("Crawling URL: " + url + " to a depth of " + depth);
+        SiteCrawler crawler = new SiteCrawler();
+        crawler.crawl(url, depth);
     }
 }
