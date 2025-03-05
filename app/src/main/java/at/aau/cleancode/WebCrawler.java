@@ -18,11 +18,13 @@ public class WebCrawler {
 
     private final Set<String> visitedURLs = ConcurrentHashMap.newKeySet();
     private final HTMLFetcher htmlFetcher;
-    private final LinkExtractor linkExtractor;
+    private final HTMLParser htmlParser;
+    private final MarkDownReportGenerator reportGenerator;
 
-    public WebCrawler(HTMLFetcher htmlFetcher, LinkExtractor linkExtractor) {
+    public WebCrawler(HTMLFetcher htmlFetcher, HTMLParser htmlParser, MarkDownReportGenerator reportGenerator) {
         this.htmlFetcher = htmlFetcher;
-        this.linkExtractor = linkExtractor;  
+        this.htmlParser = htmlParser;  
+        this.reportGenerator = reportGenerator;
     }
 
     public void crawl(String url) {
@@ -44,16 +46,17 @@ public class WebCrawler {
         }
 
         visitedURLs.add(url);
-
         LOGGER.log(Level.INFO, "Crawling -> {0}", url);
 
         try {
             Document document = this.htmlFetcher.fetch(url);
-            for (String nestedUrl : this.linkExtractor.extractLinksFromDocument(document)) {
+            this.reportGenerator.addPageToReport(document);
+
+            for (String nestedUrl : this.htmlParser.extractLinksFromDocument(document)) {
                 crawl(nestedUrl, depth - 1);
             }
         } catch (IOException e) {
-            LOGGER.log(Level.INFO, "Page could not be parsed: {0}", url);
+            LOGGER.log(Level.WARNING, "Crawling failed for: {0}", url);
         }
     }
 }

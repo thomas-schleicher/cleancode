@@ -1,10 +1,16 @@
 package at.aau.cleancode;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import at.aau.cleancode.utility.Validator;
 
 public class App {
+
+    private static final Logger LOGGER = Logger.getLogger(App.class.getName());
     private static final Scanner SCANNER = new Scanner(System.in);
 
     public static void main(String[] args) {
@@ -57,7 +63,13 @@ public class App {
         String depthInput = SCANNER.nextLine();
         int depth = Validator.checkInputDepth(depthInput) ? Integer.parseInt(depthInput) : 0;
         System.out.println("Crawling URL: " + url + " to a depth of " + depth);
-        WebCrawler crawler = new WebCrawler(new HTMLFetcher(), new LinkExtractor());
-        crawler.crawl(url, depth);
+
+        try(FileWriter fileWriter = new FileWriter("test.md")) {
+            MarkDownReportGenerator reportGenerator = new MarkDownReportGenerator(fileWriter);
+            WebCrawler crawler = new WebCrawler(new HTMLFetcher(), new HTMLParser(), reportGenerator);
+            crawler.crawl(url, depth);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Failed to establish file writer!");
+        }
     }
 }
