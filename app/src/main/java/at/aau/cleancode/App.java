@@ -8,6 +8,7 @@ public class App {
     private static final Scanner SCANNER = new Scanner(System.in);
 
     public static void main(String[] args) {
+        LoggingConfig.configure();
         printInformation();
     }
 
@@ -48,7 +49,7 @@ public class App {
     private static void performCrawlAction() {
         System.out.println("Enter a URL to be crawled: ");
         String url = SCANNER.nextLine();
-        if (!Validator.checkURL(url)) {
+        if (!Validator.validateURL(url)) {
             System.out.println("Invalid URL");
             return;
         }
@@ -56,7 +57,7 @@ public class App {
         String depthInput = SCANNER.nextLine();
         int depth = Validator.checkInputDepth(depthInput) ? Integer.parseInt(depthInput) : 0;
         System.out.println("Crawling URL: " + url + " to a depth of " + depth);
-        SiteCrawler crawler = new SiteCrawler();
+        WebCrawler crawler = new WebCrawler(new HTMLFetcher(), new LinkExtractor());
         crawler.crawl(url, depth);
     }
 }

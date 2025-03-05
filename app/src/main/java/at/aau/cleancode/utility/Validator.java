@@ -1,7 +1,11 @@
 package at.aau.cleancode.utility;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 public class Validator {
 
+    private Validator() {}
 
     public static boolean checkInputDepth(String depthInput) {
         if (depthInput.isBlank()) {
@@ -20,12 +24,14 @@ public class Validator {
         return true;
     }
 
-    public static boolean checkURL(String url) {
-        // Regex explanation:
-        // ^https?://      : Starts with "http://" or "https://"
-        // www\\.         : Must include "www." right after the protocol (escaped dot)
-        String regex = "^(https?)://www\\..+$";
-        return url != null && url.matches(regex);
+    public static boolean validateURL(String url) {
+        try {
+            URI _ = new URI(url);
+        } catch (NullPointerException | URISyntaxException e) {
+            return false;
+        }
+        String regex = "^(https?):\\/\\/.*";
+        return url.matches(regex);
     }
 
     public static boolean validateAction(String action) {
