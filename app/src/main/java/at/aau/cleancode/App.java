@@ -6,6 +6,9 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import at.aau.cleancode.config.LoggingConfig;
+import at.aau.cleancode.report.MarkDownReportGenerator;
+import at.aau.cleancode.utility.Link;
 import at.aau.cleancode.utility.Validator;
 
 public class App {
@@ -55,7 +58,7 @@ public class App {
     private static void performCrawlAction() {
         System.out.println("Enter a URL to be crawled: ");
         String url = SCANNER.nextLine();
-        if (!Validator.validateURL(url)) {
+        if (!Link.validateLink(url)) {
             System.out.println("Invalid URL");
             return;
         }
@@ -66,7 +69,8 @@ public class App {
 
         try(FileWriter fileWriter = new FileWriter("test.md")) {
             MarkDownReportGenerator reportGenerator = new MarkDownReportGenerator(fileWriter);
-            WebCrawler crawler = new WebCrawler(new HTMLFetcher(), new HTMLParser(), reportGenerator);
+            HtmlDocumentProcessor processor = new HtmlDocumentProcessor(reportGenerator);
+            WebCrawler crawler = new WebCrawler(new HTMLFetcher(), processor);
             crawler.crawl(url, depth);
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Failed to establish file writer!");

@@ -1,8 +1,5 @@
 package at.aau.cleancode.utility;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 public class Validator {
 
     private Validator() {}
@@ -22,16 +19,6 @@ public class Validator {
             return false;
         }
         return true;
-    }
-
-    public static boolean validateURL(String url) {
-        try {
-            URI _ = new URI(url);
-        } catch (NullPointerException | URISyntaxException e) {
-            return false;
-        }
-        String regex = "^(https?):\\/\\/.*";
-        return url.matches(regex);
     }
 
     public static boolean validateAction(String action) {

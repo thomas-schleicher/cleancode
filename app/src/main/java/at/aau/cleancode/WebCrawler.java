@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 
 import org.jsoup.nodes.Document;
 
-import at.aau.cleancode.utility.Validator;
+import at.aau.cleancode.utility.Link;
 
 public class WebCrawler {
 
@@ -18,45 +18,44 @@ public class WebCrawler {
 
     private final Set<String> visitedURLs = ConcurrentHashMap.newKeySet();
     private final HTMLFetcher htmlFetcher;
-    private final HTMLParser htmlParser;
-    private final MarkDownReportGenerator reportGenerator;
+    private final HtmlDocumentProcessor documentProcessor;
 
-    public WebCrawler(HTMLFetcher htmlFetcher, HTMLParser htmlParser, MarkDownReportGenerator reportGenerator) {
+    public WebCrawler(HTMLFetcher htmlFetcher, HtmlDocumentProcessor documentProcessor) {
         this.htmlFetcher = htmlFetcher;
-        this.htmlParser = htmlParser;  
-        this.reportGenerator = reportGenerator;
+        this.documentProcessor = documentProcessor;
     }
 
-    public void crawl(String url) {
-        crawl(url, DEFAULT_DEPTH);
+    public void crawl(String link) {
+        crawl(link, DEFAULT_DEPTH);
     }
 
-    public void crawl(String url, int depth) {
-        if (url == null || !Validator.validateURL(url)) {
-            LOGGER.log(Level.INFO, "Attempted logging with malformed URL: {0}", url);
+    public void crawl(String link, int depth) {
+        if (link == null || !Link.validateLink(link)) {
+            LOGGER.log(Level.INFO, "Attempted logging with malformed URL: {0}", link);
             return;
         }
 
         if (depth < MINIMUM_DEPTH) {
             return; 
         }
+        
+        //TODO: add logic to check if the link has the correct domain
 
-        if (visitedURLs.contains(url)) {
+        if (visitedURLs.contains(link)) {
             return;
         }
 
-        visitedURLs.add(url);
-        LOGGER.log(Level.INFO, "Crawling -> {0}", url);
+        visitedURLs.add(link);
+        LOGGER.log(Level.INFO, "Crawling -> {0}", link);
 
         try {
-            Document document = this.htmlFetcher.fetch(url);
-            this.reportGenerator.addPageToReport(document);
-
-            for (String nestedUrl : this.htmlParser.extractLinksFromDocument(document)) {
-                crawl(nestedUrl, depth - 1);
-            }
+            Document document = this.htmlFetcher.fetch(link);
+            //TODO: check status code of htmlFetcher for deadlink
+            //TODO: Still not sure how to handle deadlinks
+            // this.documentProcessor.reportDeadLink(link);
+            this.documentProcessor.processDocument(document, newLink -> crawl(newLink, depth - 1)); 
         } catch (IOException e) {
-            LOGGER.log(Level.WARNING, "Crawling failed for: {0}", url);
+            LOGGER.log(Level.WARNING, "Crawling failed for: {0}", link);
         }
     }
 }
