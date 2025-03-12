@@ -1,7 +1,7 @@
 package at.aau.cleancode;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Queue;
 import java.util.function.Consumer;
 
 import org.jsoup.nodes.Document;
@@ -13,15 +13,9 @@ import at.aau.cleancode.utility.Pair;
 public class HtmlDocumentProcessor {
 
     private final ReportGenerator reportGenerator;
-    private final ConcurrentLinkedQueue<String> deadLinks;
 
     protected HtmlDocumentProcessor(ReportGenerator reportGenerator) {
         this.reportGenerator = reportGenerator;
-        this.deadLinks = new ConcurrentLinkedQueue<>();
-    }
-
-    public final void reportDeadLink(String deadLink) {
-        this.deadLinks.add(deadLink);
     }
 
     public void processDocument(Document document, Consumer<String> linkConsumer) {
@@ -32,5 +26,9 @@ public class HtmlDocumentProcessor {
             }
         }
         reportGenerator.createReport(textElements);
+    }
+
+    public void handleDeadLinks(Queue<String> deadLinks) {
+        reportGenerator.updateDeadLinks(deadLinks);
     }
 }

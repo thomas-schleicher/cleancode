@@ -3,6 +3,7 @@ package at.aau.cleancode;
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,16 +18,20 @@ public class WebCrawler {
     private static final int MINIMUM_DEPTH = 0;
 
     private final Set<String> visitedURLs = ConcurrentHashMap.newKeySet();
+    private final ConcurrentLinkedQueue<String> deadLinks;
     private final HTMLFetcher htmlFetcher;
     private final HtmlDocumentProcessor documentProcessor;
 
     public WebCrawler(HTMLFetcher htmlFetcher, HtmlDocumentProcessor documentProcessor) {
         this.htmlFetcher = htmlFetcher;
         this.documentProcessor = documentProcessor;
+
+        this.deadLinks = new ConcurrentLinkedQueue<>();
     }
 
     public void crawl(String link) {
         crawl(link, DEFAULT_DEPTH);
+        this.documentProcessor.handleDeadLinks(this.deadLinks);
     }
 
     public void crawl(String link, int depth) {
@@ -51,8 +56,8 @@ public class WebCrawler {
         try {
             Document document = this.htmlFetcher.fetch(link);
             //TODO: check status code of htmlFetcher for deadlink
-            //TODO: Still not sure how to handle deadlinks
-            // this.documentProcessor.reportDeadLink(link);
+            //TODO: add deadlinks to the concurrentlinkedqueue
+            
             this.documentProcessor.processDocument(document, newLink -> crawl(newLink, depth - 1)); 
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "Crawling failed for: {0}", link);

@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.List;
+import java.util.Queue;
 
 import at.aau.cleancode.utility.Pair;
 
@@ -21,4 +22,6 @@ public abstract class ReportGenerator {
 
     //TODO: Think about creating a new DataType for this instead of List<Pair<String, Object>>
     public abstract void createReport(List<Pair<String, Object>> textElements);
+
+    public abstract void updateDeadLinks(Queue<String> deadLinks);
 }
