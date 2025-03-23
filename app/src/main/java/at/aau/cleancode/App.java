@@ -1,15 +1,16 @@
 package at.aau.cleancode;
 
+import at.aau.cleancode.config.LoggingConfig;
+import at.aau.cleancode.utility.Link;
+import at.aau.cleancode.utility.Validator;
+
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import at.aau.cleancode.config.LoggingConfig;
-import at.aau.cleancode.report.MarkDownReportGenerator;
-import at.aau.cleancode.utility.Link;
-import at.aau.cleancode.utility.Validator;
 
 public class App {
 
@@ -56,24 +57,43 @@ public class App {
     }
 
     private static void performCrawlAction() {
-        System.out.println("Enter a URL to be crawled: ");
+        System.out.println("Enter a URL to be crawled, separate them by \",\" if you want to crawl multiple URLs: ");
         String url = SCANNER.nextLine();
-        if (!Link.validateLink(url)) {
-            System.out.println("Invalid URL");
-            return;
-        }
+        var urlsForInputString = createListForURLString(url);
+
         System.out.println("Enter the Depth the crawler should crawl (optional): ");
         String depthInput = SCANNER.nextLine();
         int depth = Validator.checkInputDepth(depthInput) ? Integer.parseInt(depthInput) : 0;
-        System.out.println("Crawling URL: " + url + " to a depth of " + depth);
-
-        try(FileWriter fileWriter = new FileWriter("test.md")) {
-            MarkDownReportGenerator reportGenerator = new MarkDownReportGenerator(fileWriter);
-            HtmlDocumentProcessor processor = new HtmlDocumentProcessor(reportGenerator);
-            WebCrawler crawler = new WebCrawler(new HTMLFetcher(), processor);
-            crawler.crawl(url, depth);
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Failed to establish file writer!");
+        int i = 0;
+        var threads = new ArrayList<CrawlThread>();
+        for (String listElement : urlsForInputString) {
+            try (FileWriter fileWriter = new FileWriter(String.format("report_URL%d.md", i++))) {
+                System.out.println("Crawling URL: " + listElement + " to a depth of " + depth);
+                var crawlThread = new CrawlThread(listElement, depth, fileWriter);
+                crawlThread.start();
+                threads.add(crawlThread);
+            } catch (IOException e) {
+                LOGGER.log(Level.SEVERE, "Failed to establish file writer!");
+            }
         }
+        for (CrawlThread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                LOGGER.log(Level.SEVERE, "Thread was interrupted!", e);
+            }
+        }
+    }
+
+    private static List<String> createListForURLString(String inputURLString) {
+        List<String> urls = List.of(inputURLString.split(","));
+        List<String> result = new ArrayList<>();
+        for (String url : urls) {
+            url = url.strip();
+            if (Link.validateLink(url)) {
+                result.add(url);
+            }
+        }
+        return result;
     }
 }
