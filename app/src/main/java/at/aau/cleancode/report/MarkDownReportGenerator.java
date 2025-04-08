@@ -4,7 +4,8 @@ import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.Queue;
 
-import at.aau.cleancode.utility.Pair;
+import at.aau.cleancode.parsing.textelements.LinkElement;
+import at.aau.cleancode.parsing.textelements.TextElement;
 
 public class MarkDownReportGenerator extends ReportGenerator {
 
@@ -13,10 +14,19 @@ public class MarkDownReportGenerator extends ReportGenerator {
     }
 
     @Override
-    public void createReport(List<Pair<String, Object>> textElements) {
+    public void createReport(List<TextElement> textElements) {
+        for (TextElement textElement : textElements) {
+            if (textElement instanceof LinkElement linkElement) {
+
+                continue;
+            }
+
+            //TODO: handle regular text elements
+        }
+
+
         //TODO: Format the textelements and write them to the outputWriter
         // super.outputWriter.write("");
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override

@@ -1,4 +1,4 @@
-package at.aau.cleancode.utility;
+package at.aau.cleancode.domain;
 
 public class Pair<K, V> {
     private final K key;
