@@ -1,5 +1,6 @@
 package at.aau.cleancode.report;
 
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.Queue;
@@ -14,19 +15,21 @@ public class MarkDownReportGenerator extends ReportGenerator {
     }
 
     @Override
-    public void createReport(List<TextElement> textElements) {
+    public void appendTextElementsToReport(List<TextElement> textElements) throws IOException {
         for (TextElement textElement : textElements) {
+            StringBuilder markdownStringBuilder = new StringBuilder();
             if (textElement instanceof LinkElement linkElement) {
-
-                continue;
+                markdownStringBuilder.append("<br>");
+                markdownStringBuilder.append("-".repeat(Math.max(0, linkElement.getElementDepth())));
+                markdownStringBuilder.append("> link to <a>");
+                markdownStringBuilder.append(linkElement.getHref());
+                markdownStringBuilder.append("</a>");
+            } else {
+                //TODO: format different text elements
             }
 
-            //TODO: handle regular text elements
+            super.writeToOutputWriter(markdownStringBuilder.toString());
         }
-
-
-        //TODO: Format the textelements and write them to the outputWriter
-        // super.outputWriter.write("");
     }
 
     @Override

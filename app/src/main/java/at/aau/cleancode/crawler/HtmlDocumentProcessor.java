@@ -6,9 +6,11 @@ import at.aau.cleancode.parsing.textelements.TextElement;
 import at.aau.cleancode.report.ReportGenerator;
 import org.jsoup.nodes.Document;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Queue;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class HtmlDocumentProcessor {
@@ -26,7 +28,11 @@ public class HtmlDocumentProcessor {
                 linkConsumer.accept(newLink.getHref());
             }
         }
-        reportGenerator.createReport(textElements);
+        try {
+            reportGenerator.appendTextElementsToReport(textElements);
+        } catch (IOException e) {
+            LOGGER.log(Level.WARNING, "Failed to append page to report", e);
+        }
     }
 
     public void handleDeadLinks(Queue<String> deadLinks) {

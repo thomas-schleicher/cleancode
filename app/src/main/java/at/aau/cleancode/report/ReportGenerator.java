@@ -6,7 +6,6 @@ import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.Queue;
 
-import at.aau.cleancode.domain.Pair;
 import at.aau.cleancode.parsing.textelements.TextElement;
 
 public abstract class ReportGenerator {
@@ -21,8 +20,7 @@ public abstract class ReportGenerator {
         this.outputWriter.write(string);
     }
 
-    //TODO: Think about creating a new DataType for this instead of List<Pair<String, Object>>
-    public abstract void createReport(List<TextElement> textElements);
+    public abstract void appendTextElementsToReport(List<TextElement> textElements) throws IOException;
 
-    public abstract void updateDeadLinks(Queue<String> deadLinks);
+    public abstract void updateDeadLinks(Queue<String> deadLinks) throws IOException;
 }
