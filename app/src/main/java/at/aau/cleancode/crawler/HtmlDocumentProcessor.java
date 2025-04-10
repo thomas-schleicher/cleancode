@@ -36,6 +36,10 @@ public class HtmlDocumentProcessor {
     }
 
     public void handleDeadLinks(Queue<String> deadLinks) {
-        reportGenerator.updateDeadLinks(deadLinks);
+        try {
+            reportGenerator.updateDeadLinks(deadLinks);
+        } catch (IOException e) {
+            LOGGER.log(Level.WARNING, "Failed to update dead links", e);
+        }
     }
 }
