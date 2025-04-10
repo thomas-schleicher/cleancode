@@ -1,6 +1,7 @@
 package at.aau.cleancode.crawler;
 
 import at.aau.cleancode.domain.Link;
+import at.aau.cleancode.fetching.JsoupFetcher;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
@@ -22,10 +23,10 @@ public class WebCrawler {
 
     private final Set<String> visitedURLs = ConcurrentHashMap.newKeySet();
     private final ConcurrentLinkedQueue<String> deadLinks;
-    private final HTMLFetcher htmlFetcher;
+    private final JsoupFetcher htmlFetcher;
     private final HtmlDocumentProcessor documentProcessor;
 
-    public WebCrawler(HTMLFetcher htmlFetcher, HtmlDocumentProcessor documentProcessor) {
+    public WebCrawler(JsoupFetcher htmlFetcher, HtmlDocumentProcessor documentProcessor) {
         this.htmlFetcher = htmlFetcher;
         this.documentProcessor = documentProcessor;
 
