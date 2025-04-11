@@ -1,4 +1,4 @@
-package at.aau.cleancode.parsing.textelements;
+package at.aau.cleancode.models.textelements;
 
 public class TextElement {
 

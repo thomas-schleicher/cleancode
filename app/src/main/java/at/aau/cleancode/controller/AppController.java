@@ -3,7 +3,7 @@ package at.aau.cleancode.controller;
 import at.aau.cleancode.ui.ConsoleUI;
 import at.aau.cleancode.crawler.WebCrawler;
 import at.aau.cleancode.crawler.WebCrawlerFactory;
-import at.aau.cleancode.domain.Link;
+import at.aau.cleancode.models.Link;
 import at.aau.cleancode.utility.Validator;
 
 import java.util.Arrays;
