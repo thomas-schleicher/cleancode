@@ -16,6 +16,11 @@ public class MarkDownReportGenerator extends ReportGenerator {
 
     @Override
     public void addPage(Page page) throws IOException {
+        StringBuilder title = new StringBuilder();
+        title.append(page.getPageUrl());
+        title.append(" - ");
+        title.append(page.getPageCrawlDepth());
+
         for (TextElement textElement : page.getTextElements()) {
             StringBuilder markdownStringBuilder = new StringBuilder();
             if (textElement instanceof LinkElement linkElement) {

@@ -12,8 +12,8 @@ import java.util.function.Consumer;
 public class JsoupParser implements HTMLParser<Document> {
 
     @Override
-    public Page parse(Document input) {
-        Page page = new Page();
+    public Page parse(Document input, String pageUrl) {
+        Page page = new Page(pageUrl);
         dfsParsePageForTextElements(input.parentNode(), page::addTextElement, 0);
         return page;
     }

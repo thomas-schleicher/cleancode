@@ -9,9 +9,10 @@ public class Page {
 
     private final List<TextElement> textElements;
     private int pageCrawlDepth;
-    private String pageUrl;
+    private final String pageUrl;
 
-    public Page() {
+    public Page(String pageUrl) {
+        this.pageUrl = pageUrl;
         this.textElements = new ArrayList<>();
     }
 
@@ -29,10 +30,6 @@ public class Page {
 
     public int getPageCrawlDepth() {
         return pageCrawlDepth;
-    }
-
-    public void setPageUrl(String pageUrl) {
-        this.pageUrl = pageUrl;
     }
 
     public String getPageUrl() {

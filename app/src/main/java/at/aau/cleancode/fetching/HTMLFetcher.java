@@ -17,6 +17,6 @@ public abstract class HTMLFetcher<T> {
 
     public final Page fetchPage(String url) throws IOException {
         T rawPage = getRawPage(url);
-        return this.parser.parse(rawPage);
+        return this.parser.parse(rawPage, url);
     }
 }
