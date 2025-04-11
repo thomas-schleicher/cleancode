@@ -1,7 +1,7 @@
 package at.aau.cleancode.crawler;
 
 import at.aau.cleancode.fetching.JsoupFetcher;
-import at.aau.cleancode.report.MarkDownReportGenerator;
+import at.aau.cleancode.reporting.MarkDownReportGenerator;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -15,8 +15,7 @@ public class WebCrawlerFactory {
         try {
             FileWriter fileWriter = new FileWriter(fileName + ".md");
             MarkDownReportGenerator reportGenerator = new MarkDownReportGenerator(fileWriter);
-            HtmlDocumentProcessor processor = new HtmlDocumentProcessor(reportGenerator);
-            return new WebCrawler(new JsoupFetcher(), processor);
+            return new WebCrawler(new JsoupFetcher(), reportGenerator);
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Failed to establish file writer!", e);
             return null;

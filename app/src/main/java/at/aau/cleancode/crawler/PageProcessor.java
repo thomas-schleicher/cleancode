@@ -1,35 +1,32 @@
 package at.aau.cleancode.crawler;
 
-import at.aau.cleancode.parsing.HTMLParser;
-import at.aau.cleancode.parsing.textelements.LinkElement;
-import at.aau.cleancode.parsing.textelements.TextElement;
-import at.aau.cleancode.report.ReportGenerator;
-import org.jsoup.nodes.Document;
+import at.aau.cleancode.models.Page;
+import at.aau.cleancode.models.textelements.LinkElement;
+import at.aau.cleancode.models.textelements.TextElement;
+import at.aau.cleancode.reporting.ReportGenerator;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Queue;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class HtmlDocumentProcessor {
-    private static final Logger LOGGER = Logger.getLogger(HtmlDocumentProcessor.class.getName());
+public class PageProcessor {
+    private static final Logger LOGGER = Logger.getLogger(PageProcessor.class.getName());
     private final ReportGenerator reportGenerator;
 
-    protected HtmlDocumentProcessor(ReportGenerator reportGenerator) {
+    protected PageProcessor(ReportGenerator reportGenerator) {
         this.reportGenerator = reportGenerator;
     }
 
-    public void processDocument(Document document, Consumer<String> linkConsumer) {
-        List<TextElement> textElements = HTMLParser.parseDocumentForTextElements(document);
-        for (TextElement textElement : textElements) {
+    public void process(Page page, Consumer<String> linkConsumer) {
+        for (TextElement textElement : page.getTextElements()) {
             if (textElement instanceof LinkElement newLink) {
                 linkConsumer.accept(newLink.getHref());
             }
         }
         try {
-            reportGenerator.appendTextElementsToReport(textElements);
+            reportGenerator.addPage(page);
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "Failed to append page to report", e);
         }

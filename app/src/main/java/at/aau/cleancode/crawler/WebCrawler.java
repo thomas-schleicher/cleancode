@@ -1,8 +1,11 @@
 package at.aau.cleancode.crawler;
 
-import at.aau.cleancode.domain.Link;
-import at.aau.cleancode.fetching.JsoupFetcher;
-import org.jsoup.nodes.Document;
+import at.aau.cleancode.fetching.HTMLFetcher;
+import at.aau.cleancode.models.Link;
+import at.aau.cleancode.models.Page;
+import at.aau.cleancode.models.textelements.LinkElement;
+import at.aau.cleancode.models.textelements.TextElement;
+import at.aau.cleancode.reporting.ReportGenerator;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -12,6 +15,7 @@ import java.net.URL;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,34 +27,34 @@ public class WebCrawler {
 
     private final Set<String> visitedURLs = ConcurrentHashMap.newKeySet();
     private final ConcurrentLinkedQueue<String> deadLinks;
-    private final JsoupFetcher htmlFetcher;
-    private final HtmlDocumentProcessor documentProcessor;
+    private final HTMLFetcher<?> htmlFetcher;
+    private final ReportGenerator reportGenerator;
 
-    public WebCrawler(JsoupFetcher htmlFetcher, HtmlDocumentProcessor documentProcessor) {
+    public WebCrawler(HTMLFetcher<?> htmlFetcher, ReportGenerator reportGenerator) {
         this.htmlFetcher = htmlFetcher;
-        this.documentProcessor = documentProcessor;
+        this.reportGenerator = reportGenerator;
 
         this.deadLinks = new ConcurrentLinkedQueue<>();
     }
 
     public void crawl(String url) {
         performCrawlAction(url, DEFAULT_DEPTH, null);
-        this.documentProcessor.handleDeadLinks(this.deadLinks);
+        handleDeadLinks(this.deadLinks);
     }
 
     public void crawl(String url, int depth) {
         performCrawlAction(url, depth, null);
-        this.documentProcessor.handleDeadLinks(this.deadLinks);
+        handleDeadLinks(this.deadLinks);
     }
 
     public void crawl(String link, Set<String> domains) {
         performCrawlAction(link, DEFAULT_DEPTH, domains);
-        this.documentProcessor.handleDeadLinks(this.deadLinks);
+        handleDeadLinks(this.deadLinks);
     }
 
     public void crawl(String link, int depth, Set<String> domains) {
         performCrawlAction(link, depth, domains);
-        this.documentProcessor.handleDeadLinks(this.deadLinks);
+        handleDeadLinks(this.deadLinks);
     }
 
     public void performCrawlAction(String link, int depth, Set<String> domains) {
@@ -76,12 +80,42 @@ public class WebCrawler {
         visitedURLs.add(link);
 
         try {
-            Document document = this.htmlFetcher.fetch(link);
             LOGGER.log(Level.INFO, "Crawling -> {0}", link);
-            this.documentProcessor.processDocument(document, newLink -> performCrawlAction(newLink, depth - 1, domains));
+            Page page = this.htmlFetcher.fetchPage(link);
+            processPage(page, link, newLink -> performCrawlAction(newLink, depth - 1, domains));
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "Crawling failed for: {0}", link);
             deadLinks.add(link);
+        }
+    }
+
+    private void processPage(Page page, String link, Consumer<String> linkConsumer) {
+        page.setPageUrl(link);
+        handleLinksInPage(page, linkConsumer);
+        addPageToReport(page);
+    }
+
+    private void addPageToReport(Page page) {
+        try {
+            reportGenerator.addPage(page);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Failed to process page: {0}", page.getPageUrl());
+        }
+    }
+
+    private void handleLinksInPage(Page page, Consumer<String> linkConsumer) {
+        for (TextElement textElement : page.getTextElements()) {
+            if (textElement instanceof LinkElement linkElement) {
+                linkConsumer.accept(linkElement.getHref());
+            }
+        }
+    }
+
+    private void handleDeadLinks(ConcurrentLinkedQueue<String> deadLinks) {
+        try {
+            reportGenerator.updateDeadLinks(deadLinks);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Failed to update dead links", e);
         }
     }
 

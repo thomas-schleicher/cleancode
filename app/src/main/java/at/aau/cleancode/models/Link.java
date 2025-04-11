@@ -1,4 +1,4 @@
-package at.aau.cleancode.domain;
+package at.aau.cleancode.models;
 
 import java.net.URI;
 import java.net.URISyntaxException;
