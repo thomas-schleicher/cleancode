@@ -1,5 +1,6 @@
 package at.aau.cleancode.crawler;
 
+import at.aau.cleancode.fetching.HTMLFetcher;
 import at.aau.cleancode.fetching.JsoupFetcher;
 import at.aau.cleancode.reporting.MarkDownReportGenerator;
 
@@ -11,14 +12,15 @@ import java.util.logging.Logger;
 public class WebCrawlerFactory {
     private static final Logger LOGGER = Logger.getLogger(WebCrawlerFactory.class.getName());
 
-    public WebCrawler createMarkdownWebCrawler(String fileName) {
+    public WebCrawler createMarkdownWebCrawler(String filename) throws IllegalStateException {
         try {
-            FileWriter fileWriter = new FileWriter(fileName + ".md");
+            FileWriter fileWriter = new FileWriter(filename + ".md");
+            HTMLFetcher<?> documentFetcher = new JsoupFetcher();
             MarkDownReportGenerator reportGenerator = new MarkDownReportGenerator(fileWriter);
-            return new WebCrawler(new JsoupFetcher(), reportGenerator);
+            return new WebCrawler(documentFetcher, reportGenerator);
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Failed to establish file writer!", e);
-            return null;
+            throw new IllegalStateException("cannot create markdown webcrawler");
         }
     }
 }

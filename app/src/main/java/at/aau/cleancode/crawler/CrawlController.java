@@ -24,8 +24,7 @@ public class CrawlController {
         visitedUrls.add(url);
     }
 
-    //TODO: maybe extract this behaviour
-    public boolean isInvalidLinkForDomains(String url, Set<String> domains) {
+    public boolean isLinkInvalidForDomains(String url, Set<String> domains) {
         if (domains == null || domains.isEmpty()) {
             return true;
         }
