@@ -1,116 +1,98 @@
 package at.aau.cleancode.crawler;
 
-import at.aau.cleancode.domain.Link;
-import org.jsoup.nodes.Document;
+import at.aau.cleancode.exceptions.AlreadyCrawledException;
+import at.aau.cleancode.exceptions.DeadLinkException;
+import at.aau.cleancode.exceptions.InvalidDepthException;
+import at.aau.cleancode.exceptions.DomainNotAllowedException;
+import at.aau.cleancode.fetching.HTMLFetcher;
+import at.aau.cleancode.models.Page;
+import at.aau.cleancode.reporting.ReportGenerator;
 
+import javax.naming.MalformedLinkException;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class WebCrawler {
+public class WebCrawler implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(WebCrawler.class.getName());
     private static final int DEFAULT_DEPTH = 2;
-    private static final int MINIMUM_DEPTH = 0;
 
-    private final Set<String> visitedURLs = ConcurrentHashMap.newKeySet();
-    private final ConcurrentLinkedQueue<String> deadLinks;
-    private final HTMLFetcher htmlFetcher;
-    private final HtmlDocumentProcessor documentProcessor;
+    private final HTMLFetcher<?> htmlFetcher;
 
-    public WebCrawler(HTMLFetcher htmlFetcher, HtmlDocumentProcessor documentProcessor) {
+    private final PageProcessor pageProcessor;
+    private final CrawlController crawlController;
+    private final LinkValidator linkValidator;
+    private final DeadLinkTracker deadLinkTracker;
+
+    /**
+     * WebCrawler should be used in a try-with-resources block to ensure that
+     * dead link reporting is properly executed at the end of the crawl.
+     */
+    public WebCrawler(HTMLFetcher<?> htmlFetcher, ReportGenerator reportGenerator) {
         this.htmlFetcher = htmlFetcher;
-        this.documentProcessor = documentProcessor;
 
-        this.deadLinks = new ConcurrentLinkedQueue<>();
+        deadLinkTracker = new DeadLinkTracker(reportGenerator);
+        pageProcessor = new PageProcessor(reportGenerator);
+        crawlController = new CrawlController();
+        linkValidator = new LinkValidator();
     }
 
-    public void crawl(String url) {
-        performCrawlAction(url, DEFAULT_DEPTH, null);
-        this.documentProcessor.handleDeadLinks(this.deadLinks);
+    public void crawl(String link) {
+        crawl(link, DEFAULT_DEPTH, null);
     }
 
-    public void crawl(String url, int depth) {
-        performCrawlAction(url, depth, null);
-        this.documentProcessor.handleDeadLinks(this.deadLinks);
+    public void crawl(String link, int depth) {
+        crawl(link, depth, null);
     }
 
     public void crawl(String link, Set<String> domains) {
-        performCrawlAction(link, DEFAULT_DEPTH, domains);
-        this.documentProcessor.handleDeadLinks(this.deadLinks);
+        crawl(link, DEFAULT_DEPTH, domains);
     }
 
     public void crawl(String link, int depth, Set<String> domains) {
-        performCrawlAction(link, depth, domains);
-        this.documentProcessor.handleDeadLinks(this.deadLinks);
+        crawlPageRecursive(link, depth, domains);
     }
 
-    public void performCrawlAction(String link, int depth, Set<String> domains) {
-        if (!isLinkValid(link)) {
-            LOGGER.log(Level.INFO, "Attempted logging with malformed URL: {0}", link);
-            return;
+    private void crawlPageRecursive(String pageLink, int depth, Set<String> domains) {
+        try {
+            Page page = tryCrawlPage(pageLink, depth, domains);
+            pageProcessor.process(page, depth, newLink -> crawlPageRecursive(newLink, depth - 1, domains));
+        } catch (DeadLinkException e) {
+            deadLinkTracker.addDeadLink(pageLink);
+        } catch (AlreadyCrawledException | InvalidDepthException | DomainNotAllowedException | MalformedLinkException e) {
+            LOGGER.log(Level.INFO, "Skipping link: {0} due to: {1}", new String[]{pageLink, e.getClass().getSimpleName()});
+        }
+    }
+
+    private Page tryCrawlPage(String pageLink, int depth, Set<String> domains) throws DeadLinkException, InvalidDepthException, AlreadyCrawledException, DomainNotAllowedException, MalformedLinkException {
+        if (crawlController.isInvalidDepth(depth)) {
+            throw new InvalidDepthException();
+        }
+        if (linkValidator.isLinkValid(pageLink)) {
+            throw new MalformedLinkException();
+        }
+        if (crawlController.isLinkAlreadyVisited(pageLink)) {
+            throw new AlreadyCrawledException();
+        }
+        if (crawlController.isLinkInvalidForDomains(pageLink, domains)) {
+            throw new DomainNotAllowedException();
         }
 
-        if (!isValidDepth(depth)) {
-            return;
-        }
-
-        if (!isWebsiteInDomainSet(link, domains)) {
-            LOGGER.log(Level.INFO, "URL is not in the domain set: {0}", link);
-            return;
-        }
-
-        if (visitedURLs.contains(link)) {
-            LOGGER.log(Level.INFO, "URL was already crawled: {0}", link);
-            return;
-        }
-
-        visitedURLs.add(link);
+        crawlController.addToVisitedLinks(pageLink);
 
         try {
-            Document document = this.htmlFetcher.fetch(link);
-            LOGGER.log(Level.INFO, "Crawling -> {0}", link);
-            this.documentProcessor.processDocument(document, newLink -> performCrawlAction(newLink, depth - 1, domains));
+            LOGGER.log(Level.INFO, "Crawling -> {0}", pageLink);
+            return this.htmlFetcher.fetchPage(pageLink);
         } catch (IOException e) {
-            LOGGER.log(Level.WARNING, "Crawling failed for: {0}", link);
-            deadLinks.add(link);
+            LOGGER.log(Level.WARNING, "Crawling failed for: {0}", pageLink);
+            throw new DeadLinkException();
         }
     }
 
-    private boolean isLinkValid(String link) {
-        return link != null && Link.validateLink(link);
-    }
-
-    private boolean isValidDepth(int depth) {
-        return depth >= MINIMUM_DEPTH;
-    }
-
-    private boolean isWebsiteInDomainSet(String link, Set<String> domains) {
-        if (domains == null || domains.isEmpty()) {
-            return true;
-        }
-
-        try {
-            URL url = new URI(link).toURL();
-            String host = url.getHost().toLowerCase();
-
-            while (host.contains(".")) {
-                if (domains.contains(host)) {
-                    return true;
-                }
-                // Strip the left most subdomain from the host
-                host = host.substring(host.indexOf('.') + 1);
-            }
-        } catch (URISyntaxException | MalformedURLException e) {
-            return false;
-        }
-        return false;
+    @Override
+    public void close() {
+        deadLinkTracker.reportDeadLinks();
     }
 }

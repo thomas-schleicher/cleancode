@@ -1,12 +1,11 @@
-package at.aau.cleancode.report;
+package at.aau.cleancode.reporting;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.List;
 import java.util.Queue;
 
-import at.aau.cleancode.parsing.textelements.TextElement;
+import at.aau.cleancode.models.Page;
 
 public abstract class ReportGenerator {
 
@@ -20,7 +19,7 @@ public abstract class ReportGenerator {
         this.outputWriter.write(string);
     }
 
-    public abstract void appendTextElementsToReport(List<TextElement> textElements) throws IOException;
+    public abstract void addPage(Page page) throws IOException;
 
     public abstract void updateDeadLinks(Queue<String> deadLinks) throws IOException;
 }

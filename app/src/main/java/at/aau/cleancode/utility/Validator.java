@@ -8,6 +8,7 @@ public class Validator {
         if (depthInput.isBlank()) {
             return false;
         }
+        //TODO: the output for the user should not be printed from the validator
         try {
             int depth = Integer.parseInt(depthInput);
             if (depth < 0) {
