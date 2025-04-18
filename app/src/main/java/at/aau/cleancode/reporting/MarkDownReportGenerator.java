@@ -16,30 +16,49 @@ public class MarkDownReportGenerator extends ReportGenerator {
 
     @Override
     public void addPage(Page page) throws IOException {
-        StringBuilder title = new StringBuilder();
-        title.append(page.getPageUrl());
-        title.append(" - ");
-        title.append(page.getPageCrawlDepth());
+        StringBuilder pageEntry = new StringBuilder();
 
+        appendPageHeaderInformation(page, pageEntry);
         for (TextElement textElement : page.getTextElements()) {
-            StringBuilder markdownStringBuilder = new StringBuilder();
             if (textElement instanceof LinkElement linkElement) {
-                markdownStringBuilder.append("<br>");
-                markdownStringBuilder.append("-".repeat(Math.max(0, linkElement.getElementDepth())));
-                markdownStringBuilder.append("> link to <a>");
-                markdownStringBuilder.append(linkElement.getHref());
-                markdownStringBuilder.append("</a>");
-            } else {
-                //TODO: format different text elements
+                handleLinkElement(linkElement, pageEntry);
+                continue;
             }
-
-            super.writeToOutputWriter(markdownStringBuilder.toString());
+            handleGeneralTextElement(textElement, pageEntry);
         }
+
+        super.writeToOutputWriter(pageEntry.toString());
     }
 
     @Override
     public void updateDeadLinks(Queue<String> deadLinks) {
         //TODO: Update the links in the document to be marked broken Optimized HashMap + Regex Approach
-        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    private void appendPageHeaderInformation(Page page, StringBuilder pageEntry) {
+        pageEntry.append("input: <a>")
+                .append(page.getPageUrl())
+                .append("</a>\n")
+                .append("<br/>depth: ")
+                .append(page.getPageCrawlDepth())
+                .append("\n");
+    }
+
+    private void handleLinkElement(LinkElement linkElement, StringBuilder pageEntry) {
+        pageEntry.append("<br>")
+                .append("-".repeat(Math.max(0, linkElement.getElementDepth())))
+                .append("> link to <a>")
+                .append(linkElement.getHref())
+                .append("</a>\n");
+    }
+
+    private void handleGeneralTextElement(TextElement textElement, StringBuilder pageEntry) {
+        if (textElement.getElementName().matches("h[1-6]")) {
+            int headerLevel = Integer.parseInt(textElement.getElementName().substring(1));
+            pageEntry.append("#".repeat(headerLevel))
+                    .append(" ")
+                    .append(textElement.getTextContent())
+                    .append("\n");
+        }
     }
 }
