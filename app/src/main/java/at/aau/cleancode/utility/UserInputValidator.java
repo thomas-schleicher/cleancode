@@ -1,8 +1,8 @@
 package at.aau.cleancode.utility;
 
-public class Validator {
+public class UserInputValidator {
 
-    private Validator() {}
+    private UserInputValidator() {}
 
     public static boolean checkInputDepth(String depthInput) {
         if (depthInput.isBlank()) {

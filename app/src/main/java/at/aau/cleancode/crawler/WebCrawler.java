@@ -7,9 +7,11 @@ import at.aau.cleancode.exceptions.DomainNotAllowedException;
 import at.aau.cleancode.fetching.HTMLFetcher;
 import at.aau.cleancode.models.Page;
 import at.aau.cleancode.reporting.ReportGenerator;
+import at.aau.cleancode.utility.LinkValidator;
 
 import javax.naming.MalformedLinkException;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,6 +22,7 @@ public class WebCrawler implements AutoCloseable {
     private static final int DEFAULT_DEPTH = 2;
 
     private final HTMLFetcher<?> htmlFetcher;
+    private final ReportGenerator reportGenerator;
 
     private final PageProcessor pageProcessor;
     private final CrawlController crawlController;
@@ -32,9 +35,10 @@ public class WebCrawler implements AutoCloseable {
      */
     public WebCrawler(HTMLFetcher<?> htmlFetcher, ReportGenerator reportGenerator) {
         this.htmlFetcher = htmlFetcher;
+        this.reportGenerator = reportGenerator;
 
-        deadLinkTracker = new DeadLinkTracker(reportGenerator);
-        pageProcessor = new PageProcessor(reportGenerator);
+        pageProcessor = new PageProcessor();
+        deadLinkTracker = new DeadLinkTracker();
         crawlController = new CrawlController();
         linkValidator = new LinkValidator();
     }
@@ -51,8 +55,8 @@ public class WebCrawler implements AutoCloseable {
         crawl(link, DEFAULT_DEPTH, domains);
     }
 
-    public void crawl(String link, int depth, Set<String> domains) {
-        crawlPageRecursive(link, depth, domains);
+    public void crawl(String link, int maxDepth, Set<String> domains) {
+        crawlPageRecursive(link, maxDepth, domains);
     }
 
     private void crawlPageRecursive(String pageLink, int depth, Set<String> domains) {
@@ -70,7 +74,7 @@ public class WebCrawler implements AutoCloseable {
         if (crawlController.isInvalidDepth(depth)) {
             throw new InvalidDepthException();
         }
-        if (linkValidator.isLinkValid(pageLink)) {
+        if (!linkValidator.isLinkValid(pageLink)) {
             throw new MalformedLinkException();
         }
         if (crawlController.isLinkAlreadyVisited(pageLink)) {
@@ -93,6 +97,13 @@ public class WebCrawler implements AutoCloseable {
 
     @Override
     public void close() {
-        deadLinkTracker.reportDeadLinks();
+        Set<String> deadLinks = deadLinkTracker.getDeadLinks();
+        pageProcessor.processDeadLinks(deadLinks);
+        List<Page> processedPages = pageProcessor.getProcessedPages();
+        try {
+            reportGenerator.writeFormattedReportToOutputWriter(processedPages);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Error creating report: {0}", e.getMessage());
+        }
     }
 }

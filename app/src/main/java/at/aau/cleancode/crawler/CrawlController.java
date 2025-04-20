@@ -26,14 +26,14 @@ public class CrawlController {
 
     public boolean isLinkInvalidForDomains(String url, Set<String> domains) {
         if (domains == null || domains.isEmpty()) {
-            return true;
+            return false;
         }
 
         try {
             String host = new URI(url).getHost();
             while (host.contains(".")) {
                 if (domains.contains(host)) {
-                    return true;
+                    return false;
                 }
                 // Strip the left-most subdomain from the host
                 host = host.substring(host.indexOf('.') + 1);
@@ -43,10 +43,10 @@ public class CrawlController {
         }
 
         LOGGER.log(Level.INFO, "URL is not of the valid domains: {0}", url);
-        return false;
+        return true;
     }
 
     public boolean isInvalidDepth(int depth) {
-        return depth >= 0;
+        return depth < 0; //TODO: maybe <= instead?
     }
 }

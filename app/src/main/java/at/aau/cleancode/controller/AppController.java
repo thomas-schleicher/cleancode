@@ -3,8 +3,8 @@ package at.aau.cleancode.controller;
 import at.aau.cleancode.ui.ConsoleUI;
 import at.aau.cleancode.crawler.WebCrawler;
 import at.aau.cleancode.crawler.WebCrawlerFactory;
-import at.aau.cleancode.models.Link;
-import at.aau.cleancode.utility.Validator;
+import at.aau.cleancode.utility.LinkValidator;
+import at.aau.cleancode.utility.UserInputValidator;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -13,10 +13,12 @@ import java.util.stream.Collectors;
 public class AppController {
     private final ConsoleUI ui;
     private final WebCrawlerFactory crawlerFactory;
+    private final LinkValidator linkValidator;
 
     public AppController(ConsoleUI ui, WebCrawlerFactory crawlerFactory) {
         this.ui = ui;
         this.crawlerFactory = crawlerFactory;
+        this.linkValidator = new LinkValidator();
     }
 
     public void start() {
@@ -51,19 +53,20 @@ public class AppController {
                 + " with domains: " + domains);
 
         String fileName = promptForFileName();
-        WebCrawler crawler = crawlerFactory.createMarkdownWebCrawler(fileName);
-        if (crawler == null) {
-            ui.printMessage("Failed to create crawler. Please try again.");
-            performCrawlAction();
-        } else {
-            crawler.crawl(url, depth, domains);
+        try (WebCrawler crawler = crawlerFactory.createMarkdownWebCrawler(fileName)) {
+            if (crawler == null) {
+                ui.printMessage("Failed to create crawler. Please try again.");
+                performCrawlAction();
+            } else {
+                crawler.crawl(url, depth, domains);
+            }
         }
     }
 
     private String promptForURL() {
         ui.printMessage("Please enter the URL you want to crawl:");
         String url = ui.nextLine();
-        if (!Link.validateLink(url)) {
+        if (!linkValidator.isLinkValid(url)) {
             ui.printMessage("Invalid URL. Please try again.");
             return promptForURL();
         }
@@ -82,7 +85,7 @@ public class AppController {
     private int promptForDepth() {
         ui.printMessage("Enter the depth for the crawler (optional):");
         String input = ui.nextLine();
-        return Validator.checkInputDepth(input) ? Integer.parseInt(input) : 0;
+        return UserInputValidator.checkInputDepth(input) ? Integer.parseInt(input) : 2; //TODO: das darf nicht 0 geben, weil sonst nur die seite selber geparsed wird
     }
 
     private String promptForFileName() {
