@@ -47,6 +47,6 @@ public class CrawlController {
     }
 
     public boolean isInvalidDepth(int depth) {
-        return depth < 0; //TODO: maybe <= instead?
+        return depth < 0;
     }
 }
