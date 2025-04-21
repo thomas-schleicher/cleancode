@@ -26,7 +26,7 @@ public class JsoupFetcher extends HTMLFetcher<Document> {
 
         int statusCode = response.statusCode();
         if (statusCode >= 200 && statusCode < 300) {
-            return response.parse();
+            return Jsoup.parse(response.body(), url);
         } else {
             LOGGER.log(Level.WARNING, "Failed to fetch page: {0}", url);
             throw new IOException("Failed to fetch URL: " + url + " (status " + statusCode + ")");

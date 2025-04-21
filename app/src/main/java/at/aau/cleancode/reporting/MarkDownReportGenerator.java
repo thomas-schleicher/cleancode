@@ -2,7 +2,7 @@ package at.aau.cleancode.reporting;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.Queue;
+import java.util.List;
 
 import at.aau.cleancode.models.Page;
 import at.aau.cleancode.models.textelements.LinkElement;
@@ -15,24 +15,20 @@ public class MarkDownReportGenerator extends ReportGenerator {
     }
 
     @Override
-    public void addPage(Page page) throws IOException {
-        StringBuilder pageEntry = new StringBuilder();
+    public void writeFormattedReportToOutputWriter(List<Page> pages) throws IOException {
+        for (Page page : pages) {
+            StringBuilder pageEntry = new StringBuilder();
+            appendPageHeaderInformation(page, pageEntry);
 
-        appendPageHeaderInformation(page, pageEntry);
-        for (TextElement textElement : page.getTextElements()) {
-            if (textElement instanceof LinkElement linkElement) {
-                handleLinkElement(linkElement, pageEntry);
-                continue;
-            }
-            handleGeneralTextElement(textElement, pageEntry);
+            page.getTextElements().forEach(textElement -> {
+                if (textElement instanceof LinkElement linkElement) {
+                    handleLinkElement(linkElement, pageEntry);
+                }
+                handleGeneralTextElement(textElement, pageEntry);
+            });
+            pageEntry.append("\n");
+            super.writeToOutputWriter(pageEntry.toString());
         }
-
-        super.writeToOutputWriter(pageEntry.toString());
-    }
-
-    @Override
-    public void updateDeadLinks(Queue<String> deadLinks) {
-        //TODO: Update the links in the document to be marked broken Optimized HashMap + Regex Approach
     }
 
     private void appendPageHeaderInformation(Page page, StringBuilder pageEntry) {
@@ -47,8 +43,15 @@ public class MarkDownReportGenerator extends ReportGenerator {
     private void handleLinkElement(LinkElement linkElement, StringBuilder pageEntry) {
         pageEntry.append("<br>")
                 .append("-".repeat(Math.max(0, linkElement.getElementDepth())))
-                .append("> link to <a>")
-                .append(linkElement.getHref())
+                .append(">");
+
+        if (linkElement.isDeadLink()) {
+            pageEntry.append(" [dead link] to <a>");
+        } else {
+            pageEntry.append(" link to <a>");
+        }
+
+        pageEntry.append(linkElement.getHref())
                 .append("</a>\n");
     }
 

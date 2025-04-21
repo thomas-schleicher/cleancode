@@ -14,20 +14,16 @@ public class JsoupParser implements HTMLParser<Document> {
     @Override
     public Page parse(Document input, String pageUrl) {
         Page page = new Page(pageUrl);
-        dfsParsePageForTextElements(input.parentNode(), page::addTextElement, 0);
+        dfsParsePageForTextElements(input, page::addTextElement, 0);
         return page;
     }
 
     private void dfsParsePageForTextElements(Node node, Consumer<TextElement> textElementConsumer, int depth) {
-        if (!(node instanceof Element element)) {
-            return;
+        if (node instanceof Element element && elementHasTextContent(element)) {
+                handleTextElement(element, depth, textElementConsumer);
         }
 
-        if (elementHasTextContent(element)) {
-           handleTextElement(element, depth, textElementConsumer);
-        }
-
-        for (Node child : element.childNodes()) {
+        for (Node child : node.childNodes()) {
             dfsParsePageForTextElements(child, textElementConsumer, depth + 1);
         }
     }
@@ -36,7 +32,6 @@ public class JsoupParser implements HTMLParser<Document> {
         return !element.text().isBlank();
     }
 
-    //TODO: Check if there are other text elements that contain other text that should be handled
     private void handleTextElement(Element element, int depthInPageHierarchy, Consumer<TextElement> textElementConsumer) {
         TextElement textElement;
         if (element.nodeName().equals("a")) {

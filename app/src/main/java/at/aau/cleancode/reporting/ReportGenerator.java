@@ -1,11 +1,11 @@
 package at.aau.cleancode.reporting;
 
+import at.aau.cleancode.models.Page;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.Queue;
-
-import at.aau.cleancode.models.Page;
+import java.util.List;
 
 public abstract class ReportGenerator {
 
@@ -15,11 +15,9 @@ public abstract class ReportGenerator {
         this.outputWriter = new BufferedWriter(outputStreamWriter);
     }
 
-    protected synchronized void writeToOutputWriter(String string) throws IOException {
+    protected final synchronized void writeToOutputWriter(String string) throws IOException {
         this.outputWriter.write(string);
     }
 
-    public abstract void addPage(Page page) throws IOException;
-
-    public abstract void updateDeadLinks(Queue<String> deadLinks) throws IOException;
+    public abstract void writeFormattedReportToOutputWriter(List<Page> pages) throws IOException;
 }

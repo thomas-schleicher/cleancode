@@ -1,4 +1,4 @@
-package at.aau.cleancode.crawler;
+package at.aau.cleancode.utility;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -19,7 +19,7 @@ public class LinkValidator {
             return false;
         }
 
-        Pattern pattern = Pattern.compile("^(https?):\\/\\/.*");
+        Pattern pattern = Pattern.compile("^(https?)://.*"); //"^(https?):\\/\\/.*"
         Matcher matcher = pattern.matcher(link);
 
         if (!matcher.matches()) {
