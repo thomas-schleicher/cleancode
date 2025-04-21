@@ -22,7 +22,10 @@ dependencies {
     // Use Jsoup for HTML parsing
     implementation 'org.jsoup:jsoup:1.18.3'
 
-    // Use JUnit Jupiter for testing.
+    // Use Mockito for mocking objects
+    testImplementation 'org.mockito:mockito-core:5.17.0'
+
+    // Use JUnit Jupiter for testing
     testImplementation libs.junit.jupiter
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
