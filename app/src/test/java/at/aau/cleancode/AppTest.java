@@ -6,7 +6,8 @@ package at.aau.cleancode;
 import org.junit.jupiter.api.Test;
 
 class AppTest {
-    @Test void exampleTest() {
-  
+    @Test
+    void exampleTest() {
+
     }
 }

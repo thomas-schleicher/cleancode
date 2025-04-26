@@ -85,7 +85,12 @@ public class AppController {
     private int promptForDepth() {
         ui.printMessage("Enter the depth for the crawler (optional):");
         String input = ui.nextLine();
-        return UserInputValidator.checkInputDepth(input) ? Integer.parseInt(input) : 2; //TODO: das darf nicht 0 geben, weil sonst nur die seite selber geparsed wird
+        return getValidatedInputDepth(input);
+    }
+
+    /// depth is optional, default to 2, if not valid and smaller than 1
+    private static int getValidatedInputDepth(String input) {
+        return UserInputValidator.checkInputDepth(input) && Integer.parseInt(input) >= 1 ? Integer.parseInt(input) : 2;
     }
 
     private String promptForFileName() {

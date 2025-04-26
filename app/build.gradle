@@ -35,6 +35,7 @@ dependencies {
 
     implementation 'org.jsoup:jsoup:1.18.3'
 
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
