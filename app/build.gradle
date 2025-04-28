@@ -33,8 +33,6 @@ dependencies {
     // This dependency is used by the application.
     implementation libs.guava
 
-    implementation 'org.jsoup:jsoup:1.18.3'
-
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
 }
 

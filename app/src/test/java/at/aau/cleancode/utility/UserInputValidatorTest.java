@@ -6,27 +6,27 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class UserInputValidatorTest {
+class DepthValidatorTest {
 
     @Test
     void testCheckInputDepthCorrectness() throws InvalidDepthException {
-        assertFalse(UserInputValidator.checkInputDepth("0"), "Zero depth should return false");
-        assertTrue(UserInputValidator.checkInputDepth("10"), "Positive depth should return true");
-        Assertions.assertDoesNotThrow(() -> UserInputValidator.checkInputDepth("0"), "Zero depth should not throw an exception");
-        Assertions.assertDoesNotThrow(() -> UserInputValidator.checkInputDepth("10"), "Zero depth should not throw an exception");
+        assertTrue(DepthValidator.isValidDepth("0"));
+        assertTrue(DepthValidator.isValidDepth("10"));
+        Assertions.assertDoesNotThrow(() -> DepthValidator.isValidDepth("0"));
+        Assertions.assertDoesNotThrow(() -> DepthValidator.isValidDepth("10"));
 
     }
 
     @Test
-    void testCheckInputDepthWithInvalidInputs() {
-        Assertions.assertThrows(InvalidDepthException.class,() -> UserInputValidator.checkInputDepth("-5"));
-        Assertions.assertThrows(InvalidDepthException.class,() -> UserInputValidator.checkInputDepth("abc"));
+    void testCheckInputDepthWithInvalidInputs() throws InvalidDepthException {
+        assertFalse(DepthValidator.isValidDepth("-5"));
+        Assertions.assertThrows(InvalidDepthException.class,() -> DepthValidator.isValidDepth("abc"));
     }
 
     @Test
-    void testCheckInputDepthWithNullAndBlank() throws InvalidDepthException {
-        assertFalse(UserInputValidator.checkInputDepth(null), "Null input should return false");
-        assertFalse(UserInputValidator.checkInputDepth(""), "Empty input should return false");
-        assertFalse(UserInputValidator.checkInputDepth("   "), "Whitespace input should return false");
+    void testCheckInputDepthWithNullAndBlank() {
+        Assertions.assertThrows(NullPointerException.class, () -> DepthValidator.isValidDepth(null));
+        Assertions.assertThrows(NullPointerException.class, () -> DepthValidator.isValidDepth(""));
+        Assertions.assertThrows(NullPointerException.class, () -> DepthValidator.isValidDepth("   "));
     }
 }

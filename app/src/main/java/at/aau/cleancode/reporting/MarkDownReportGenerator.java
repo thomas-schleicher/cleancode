@@ -1,12 +1,12 @@
 package at.aau.cleancode.reporting;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.List;
-
 import at.aau.cleancode.models.Page;
 import at.aau.cleancode.models.textelements.LinkElement;
 import at.aau.cleancode.models.textelements.TextElement;
+
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.util.List;
 
 public class MarkDownReportGenerator extends ReportGenerator {
 

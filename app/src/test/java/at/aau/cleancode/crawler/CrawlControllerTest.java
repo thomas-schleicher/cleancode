@@ -55,12 +55,4 @@ class CrawlControllerTest {
         );
     }
 
-    @Test
-    void isInvalidDepth() {
-        Assertions.assertTrue(controller.isInvalidDepth(Integer.MIN_VALUE));
-        Assertions.assertTrue(controller.isInvalidDepth(-1));
-        Assertions.assertFalse(controller.isInvalidDepth(0));
-        Assertions.assertFalse(controller.isInvalidDepth(1));
-        Assertions.assertFalse(controller.isInvalidDepth(Integer.MAX_VALUE));
-    }
 }

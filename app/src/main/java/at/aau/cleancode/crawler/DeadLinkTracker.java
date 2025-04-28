@@ -1,6 +1,6 @@
 package at.aau.cleancode.crawler;
 
-import java.util.*;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DeadLinkTracker {

@@ -3,6 +3,7 @@ package at.aau.cleancode.controller;
 import at.aau.cleancode.crawler.WebCrawler;
 import at.aau.cleancode.crawler.WebCrawlerFactory;
 import at.aau.cleancode.ui.ConsoleUI;
+import at.aau.cleancode.ui.UserInterface;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -24,7 +25,7 @@ class AppControllerTest {
     private static final String DEPTH_INPUT = "5";
     private static final String FILENAME = "report.md";
 
-    ConsoleUI ui;
+    UserInterface ui;
     WebCrawlerFactory crawlerFactory;
     WebCrawler crawler;
     AppController controller;
