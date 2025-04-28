@@ -23,10 +23,10 @@ public class AppController {
     }
 
     public void start() {
+        String initialAction = promptInitialUserAction();
         String url = getValidUrlFromUser();
         Set<String> domains = getDomainsFromUser();
         int depth = getValidDepthFromUser();
-        String initialAction = promptInitialUserAction();
         if ("crawl".equalsIgnoreCase(initialAction) || "1".equals(initialAction)) {
             try (WebCrawler crawler = createWebCrawler()) {
                 if (depth == -1) {
