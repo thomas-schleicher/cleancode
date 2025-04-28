@@ -1,5 +1,6 @@
 package at.aau.cleancode.controller;
 
+import at.aau.cleancode.exceptions.InvalidDepthException;
 import at.aau.cleancode.ui.ConsoleUI;
 import at.aau.cleancode.crawler.WebCrawler;
 import at.aau.cleancode.crawler.WebCrawlerFactory;
@@ -49,7 +50,7 @@ public class AppController {
         int depth = promptForDepth();
 
         ui.printMessage("Crawling URL: " + url
-                + " to a depth of " + depth
+                + " to a depth of " + Math.max(depth, 0)
                 + " with domains: " + domains);
 
         String fileName = promptForFileName();
@@ -58,7 +59,8 @@ public class AppController {
                 ui.printMessage("Failed to create crawler. Please try again.");
                 performCrawlAction();
             } else {
-                crawler.crawl(url, depth, domains);
+                if (depth == -1) crawler.crawl(url, domains);
+                else crawler.crawl(url, depth, domains);
             }
         }
     }
@@ -89,8 +91,16 @@ public class AppController {
     }
 
     /// depth is optional, default to 2, if not valid and smaller than 1
-    private static int getValidatedInputDepth(String input) {
-        return UserInputValidator.checkInputDepth(input) && Integer.parseInt(input) >= 1 ? Integer.parseInt(input) : 2;
+    private int getValidatedInputDepth(String input) {
+        boolean valid;
+        try {
+            valid = UserInputValidator.checkInputDepth(input);
+        } catch (InvalidDepthException invalidDepthException) {
+            ui.printMessage("Invalid depth. Using default depth of 2.");
+            return -1;
+        }
+        if (!valid) ui.printMessage("Using default depth of 2.");
+        return valid ? Integer.parseInt(input) : -1;
     }
 
     private String promptForFileName() {
