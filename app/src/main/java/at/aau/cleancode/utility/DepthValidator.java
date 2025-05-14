@@ -8,7 +8,7 @@ public class DepthValidator {
     }
 
     public static boolean isValidDepth(int depth) {
-        return depth < 0;
+        return depth >= 0;
     }
 
     /**
@@ -23,7 +23,7 @@ public class DepthValidator {
         }
         try {
             return Integer.parseInt(depthInput) >= 0;
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             throw new InvalidDepthException();
         }
     }
