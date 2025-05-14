@@ -5,7 +5,6 @@ import at.aau.cleancode.models.textelements.LinkElement;
 import at.aau.cleancode.models.textelements.TextElement;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class PageProcessor {
@@ -16,19 +15,26 @@ public class PageProcessor {
         this.pages = Collections.synchronizedList(new ArrayList<>());
     }
 
-    public void process(Page page, int pageDepth, Consumer<String> linkConsumer) {
-        page.setPageCrawlDepth(pageDepth);
-        handleLinksInPage(page, linkConsumer);
+    public Optional<List<String>> process(Page page, int pageDepth) {
+        //TODO: write new tests for process
+        if (page == null) {
+            return Optional.empty();
+        }
 
+        page.setPageCrawlDepth(pageDepth);
         pages.add(page);
+
+        return Optional.of(handleLinksInPage(page));
     }
 
-    private void handleLinksInPage(Page page, Consumer<String> linkConsumer) {
+    private List<String> handleLinksInPage(Page page) {
+        List<String> links = new ArrayList<>();
         for (TextElement textElement : page.getTextElements()) {
             if (textElement instanceof LinkElement linkElement) {
-                linkConsumer.accept(linkElement.getHref());
+                links.add(linkElement.getHref());
             }
         }
+        return links;
     }
 
     public void processDeadLinks(Set<String> deadLinks) {
