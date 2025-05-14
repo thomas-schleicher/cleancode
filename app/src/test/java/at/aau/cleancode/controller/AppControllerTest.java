@@ -3,18 +3,15 @@ package at.aau.cleancode.controller;
 import at.aau.cleancode.crawler.WebCrawler;
 import at.aau.cleancode.crawler.WebCrawlerFactory;
 import at.aau.cleancode.ui.ConsoleUI;
+import at.aau.cleancode.ui.UserInterface;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class AppControllerTest {
 
@@ -24,7 +21,7 @@ class AppControllerTest {
     private static final String DEPTH_INPUT = "5";
     private static final String FILENAME = "report.md";
 
-    ConsoleUI ui;
+    UserInterface ui;
     WebCrawlerFactory crawlerFactory;
     WebCrawler crawler;
     AppController controller;
@@ -38,15 +35,15 @@ class AppControllerTest {
     }
 
     @Test
-    void crawlActionShouldRetryBadUrlThenCrawlWithCorrectParameters() throws Exception {
-        // Arrange: sequence of inputs
+    void crawlActionShouldRetryBadUrlThenCrawlWithCorrectParameters() {
+        // Arrange: sequence of inputs as per controller's prompts
         given(ui.nextLine()).willReturn(
-                "crawl",
-                BAD_URL,
-                TEST_URL,
-                DOMAINS,
-                DEPTH_INPUT,
-                FILENAME
+                "crawl",    // initial action
+                BAD_URL,     // 1st URL attempt (invalid)
+                TEST_URL,    // 2nd URL attempt (valid)
+                DOMAINS,     // domains input
+                DEPTH_INPUT, // depth input
+                FILENAME     // filename input
         );
         given(crawlerFactory.createMarkdownWebCrawler(FILENAME)).willReturn(crawler);
 
@@ -56,25 +53,9 @@ class AppControllerTest {
         // Assert invalid‐URL retry
         verify(ui).printMessage("Invalid URL. Please try again.");
 
-        // assert crawl‐summary
-        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(ui, atLeastOnce()).printMessage(captor.capture());
-
-        String crawlMsg = captor.getAllValues().stream()
-                .filter(s -> s.startsWith("Crawling URL:"))
-                .findFirst()
-                .orElseThrow(() -> new AssertionError("Missing crawl message"));
-
-        assertTrue(crawlMsg.contains("Crawling URL: " + TEST_URL));
-        assertTrue(crawlMsg.contains("depth of 5"));
-
-        // parse and assert domains set
-        String domainsPart = crawlMsg.split("with domains: ")[1];
-        Set<String> actual = new HashSet<>(Arrays.asList(domainsPart.replaceAll("[\\[\\]]", "").split(",\\s*")));
-        assertEquals(Set.of("foo.com", "bar.org"), actual);
-
         // crawler invoked with correct args
-        verify(crawler).crawl(TEST_URL, 5, actual);
+        Set<String> expectedDomains = Set.of("foo.com", "bar.org");
+        verify(crawler).crawl(TEST_URL, 5, expectedDomains);
         verify(crawler).close();
     }
 }

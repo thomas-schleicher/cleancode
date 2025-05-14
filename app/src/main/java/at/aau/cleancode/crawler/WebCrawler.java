@@ -2,11 +2,12 @@ package at.aau.cleancode.crawler;
 
 import at.aau.cleancode.exceptions.AlreadyCrawledException;
 import at.aau.cleancode.exceptions.DeadLinkException;
-import at.aau.cleancode.exceptions.InvalidDepthException;
 import at.aau.cleancode.exceptions.DomainNotAllowedException;
+import at.aau.cleancode.exceptions.InvalidDepthException;
 import at.aau.cleancode.fetching.HTMLFetcher;
 import at.aau.cleancode.models.Page;
 import at.aau.cleancode.reporting.ReportGenerator;
+import at.aau.cleancode.utility.DepthValidator;
 import at.aau.cleancode.utility.LinkValidator;
 
 import javax.naming.MalformedLinkException;
@@ -17,7 +18,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class WebCrawler implements AutoCloseable {
-
     private static final Logger LOGGER = Logger.getLogger(WebCrawler.class.getName());
     private static final int DEFAULT_DEPTH = 2;
 
@@ -61,17 +61,18 @@ public class WebCrawler implements AutoCloseable {
 
     private void crawlPageRecursive(String pageLink, int depth, Set<String> domains) {
         try {
-            Page page = tryCrawlPage(pageLink, depth, domains);
+            Page page = attemptToCrawlPage(pageLink, depth, domains);
             pageProcessor.process(page, depth, newLink -> crawlPageRecursive(newLink, depth - 1, domains));
         } catch (DeadLinkException e) {
             deadLinkTracker.addDeadLink(pageLink);
-        } catch (AlreadyCrawledException | InvalidDepthException | DomainNotAllowedException | MalformedLinkException e) {
+        } catch (AlreadyCrawledException | InvalidDepthException | DomainNotAllowedException |
+                 MalformedLinkException e) {
             LOGGER.log(Level.INFO, "Skipping link: {0} due to: {1}", new String[]{pageLink, e.getClass().getSimpleName()});
         }
     }
 
-    private Page tryCrawlPage(String pageLink, int depth, Set<String> domains) throws DeadLinkException, InvalidDepthException, AlreadyCrawledException, DomainNotAllowedException, MalformedLinkException {
-        if (crawlController.isInvalidDepth(depth)) {
+    private Page attemptToCrawlPage(String pageLink, int depth, Set<String> domains) throws DeadLinkException, InvalidDepthException, AlreadyCrawledException, DomainNotAllowedException, MalformedLinkException {
+        if (!DepthValidator.isValidDepth(depth)) {
             throw new InvalidDepthException();
         }
         if (!linkValidator.isLinkValid(pageLink)) {

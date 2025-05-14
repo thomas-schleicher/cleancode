@@ -1,13 +1,13 @@
 package at.aau.cleancode.fetching;
 
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import at.aau.cleancode.parsing.JsoupParser;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class JsoupFetcher extends HTMLFetcher<Document> {
 

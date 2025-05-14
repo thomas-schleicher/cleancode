@@ -29,11 +29,20 @@ public class CrawlController {
             return false;
         }
 
+        if (isUrlMatchingADomain(url, domains)) {
+            return false;
+        }
+
+        LOGGER.log(Level.INFO, "URL is not of the valid domains: {0}", url);
+        return true;
+    }
+
+    private boolean isUrlMatchingADomain(String url, Set<String> domains) {
         try {
             String host = new URI(url).getHost();
             while (host.contains(".")) {
                 if (domains.contains(host)) {
-                    return false;
+                    return true;
                 }
                 // Strip the left-most subdomain from the host
                 host = host.substring(host.indexOf('.') + 1);
@@ -41,12 +50,6 @@ public class CrawlController {
         } catch (URISyntaxException e) {
             LOGGER.log(Level.WARNING, "URI syntax exception", e);
         }
-
-        LOGGER.log(Level.INFO, "URL is not of the valid domains: {0}", url);
-        return true;
-    }
-
-    public boolean isInvalidDepth(int depth) {
-        return depth < 0;
+        return false;
     }
 }

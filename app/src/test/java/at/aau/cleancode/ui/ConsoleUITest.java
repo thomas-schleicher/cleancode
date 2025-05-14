@@ -18,7 +18,7 @@ class ConsoleUITest {
     private final InputStream originalIn = System.in;
 
     private ByteArrayOutputStream outContent;
-    private ConsoleUI ui;
+    private UserInterface ui;
 
     @BeforeEach
     void setUp() {
@@ -55,7 +55,7 @@ class ConsoleUITest {
         String simulated = "foo";
         System.setIn(new ByteArrayInputStream((simulated + System.lineSeparator()).getBytes()));
 
-        try (ConsoleUI autoUi = new ConsoleUI()) {
+        try (UserInterface autoUi = new ConsoleUI()) {
             assertEquals("foo", autoUi.nextLine());
         }
 

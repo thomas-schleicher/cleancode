@@ -4,11 +4,9 @@ import at.aau.cleancode.models.Page;
 import at.aau.cleancode.models.textelements.LinkElement;
 import at.aau.cleancode.models.textelements.TextElement;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class PageProcessor {
 
@@ -34,11 +32,13 @@ public class PageProcessor {
     }
 
     public void processDeadLinks(Set<String> deadLinks) {
-        pages.forEach(page -> page.getTextElements().forEach(textElement -> {
-            if (textElement instanceof LinkElement linkElement && deadLinks.contains(linkElement.getHref())) {
-                linkElement.setLinkDead();
-            }
-        }));
+        Predicate<LinkElement> isLinkDead = link -> deadLinks.contains(link.getHref());
+        pages.stream()
+                .flatMap(page -> page.getTextElements().stream())
+                .filter(LinkElement.class::isInstance)
+                .map(LinkElement.class::cast)
+                .filter(isLinkDead)
+                .forEach(LinkElement::setLinkDead);
     }
 
     public List<Page> getProcessedPages() {

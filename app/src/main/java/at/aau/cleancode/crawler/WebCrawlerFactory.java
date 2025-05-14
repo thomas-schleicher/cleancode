@@ -13,14 +13,13 @@ public class WebCrawlerFactory {
     private static final Logger LOGGER = Logger.getLogger(WebCrawlerFactory.class.getName());
 
     public WebCrawler createMarkdownWebCrawler(String filename) throws IllegalStateException {
-        try {
-            FileWriter fileWriter = new FileWriter(filename + ".md");
+        try (FileWriter fileWriter = new FileWriter(filename + ".md")) {
             HTMLFetcher<?> documentFetcher = new JsoupFetcher();
             MarkDownReportGenerator reportGenerator = new MarkDownReportGenerator(fileWriter);
             return new WebCrawler(documentFetcher, reportGenerator);
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Failed to establish file writer!", e);
-            throw new IllegalStateException("cannot create markdown webcrawler");
+            throw new IllegalStateException("Cannot create markdown webcrawler");
         }
     }
 }

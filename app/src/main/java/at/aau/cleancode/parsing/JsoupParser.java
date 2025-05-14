@@ -20,7 +20,7 @@ public class JsoupParser implements HTMLParser<Document> {
 
     private void dfsParsePageForTextElements(Node node, Consumer<TextElement> textElementConsumer, int depth) {
         if (node instanceof Element element && elementHasTextContent(element)) {
-                handleTextElement(element, depth, textElementConsumer);
+            handleTextElement(element, depth, textElementConsumer);
         }
 
         for (Node child : node.childNodes()) {
