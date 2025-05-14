@@ -30,7 +30,7 @@ class CrawlControllerTest {
     @ValueSource(strings = {"https://google.com", "https://test.google.com", "https://www.aau.at"})
     void linkShouldBeInvalidForDomainSet(String link) {
         Set<String> domains = new HashSet<>();
-        domains.add("https://www.google.com");
+        domains.add("www.google.com");
         Assertions.assertTrue(controller.isLinkInvalidForDomains(link, domains));
     }
 
@@ -38,8 +38,8 @@ class CrawlControllerTest {
     @ValueSource(strings = {"https://test.www.google.com", "https://other.google.com", "https://google.com"})
     void linkShouldBeValidForDomainSet(String link) {
         Set<String> domains = new HashSet<>();
-        domains.add("https://www.google.com");
-        domains.add("https://google.com");
+        domains.add("www.google.com");
+        domains.add("google.com");
         Assertions.assertFalse(controller.isLinkInvalidForDomains(link, domains));
     }
 
