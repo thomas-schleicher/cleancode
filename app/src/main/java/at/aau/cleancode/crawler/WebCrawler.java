@@ -68,9 +68,7 @@ public class WebCrawler implements AutoCloseable {
     }
 
     private CompletableFuture<Void> crawlPageAsync(String pageLink, int depth, Set<String> domains) {
-
         var executor = Executors.newVirtualThreadPerTaskExecutor();
-
         return CompletableFuture.runAsync(() -> {
             Page page = null;
             try {
@@ -127,6 +125,7 @@ public class WebCrawler implements AutoCloseable {
 
         try {
             reportGenerator.writeFormattedReportToOutputWriter(processedPages);
+            reportGenerator.closeWriter();
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Error creating report: {0}", e.getMessage());
         }

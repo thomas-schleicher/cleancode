@@ -20,4 +20,8 @@ public abstract class ReportGenerator {
     }
 
     public abstract void writeFormattedReportToOutputWriter(List<Page> pages) throws IOException;
+
+    public final void closeWriter() throws IOException {
+        this.outputWriter.close();
+    }
 }
