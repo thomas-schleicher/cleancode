@@ -35,7 +35,7 @@ class PageProcessorTest {
         @SuppressWarnings("unchecked")
         Consumer<String> consumer = mock(Consumer.class);
 
-        processor.process(page, arbitraryDepth, consumer);
+        processor.process(page, arbitraryDepth);
 
         Assertions.assertEquals(1, processor.getProcessedPages().size());
         Assertions.assertEquals(page, processor.getProcessedPages().getFirst());
@@ -61,7 +61,7 @@ class PageProcessorTest {
         @SuppressWarnings("unchecked")
         Consumer<String> consumer = mock(Consumer.class);
 
-        processor.process(page, 1, consumer);
+        processor.process(page, 1);
 
         Set<String> deadLinks = Set.of(deadLink);
         processor.processDeadLinks(deadLinks);
@@ -82,8 +82,8 @@ class PageProcessorTest {
         @SuppressWarnings("unchecked")
         Consumer<String> consumer = mock(Consumer.class);
 
-        processor.process(page1, 0, consumer);
-        processor.process(page2, 1, consumer);
+        processor.process(page1, 0);
+        processor.process(page2, 1);
 
         List<Page> processedPages = processor.getProcessedPages();
 
