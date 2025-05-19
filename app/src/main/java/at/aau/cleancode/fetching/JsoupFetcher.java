@@ -21,7 +21,8 @@ public class JsoupFetcher extends HTMLFetcher<Document> {
     Document getRawPage(String url) throws IOException {
         Connection.Response response = Jsoup.connect(url)
                 .ignoreHttpErrors(true)
-                .timeout(5000)
+                .followRedirects(true)
+                .ignoreContentType(true)
                 .execute();
 
         int statusCode = response.statusCode();
