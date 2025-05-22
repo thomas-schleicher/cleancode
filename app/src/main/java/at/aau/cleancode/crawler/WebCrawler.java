@@ -15,15 +15,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class WebCrawler implements AutoCloseable {
     private static final Logger LOGGER = Logger.getLogger(WebCrawler.class.getName());
     private static final int DEFAULT_DEPTH = 2;
+    private static final int CONCURRENT_CRAWL_LIMIT = 10;
 
     private final HTMLFetcher<?> htmlFetcher;
     private final ReportGenerator reportGenerator;
@@ -33,10 +32,9 @@ public class WebCrawler implements AutoCloseable {
     private final LinkValidator linkValidator;
     private final DeadLinkTracker deadLinkTracker;
 
-    /**
-     * WebCrawler should be used in a try-with-resources block to ensure that
-     * dead link reporting is properly executed at the end of the crawl.
-     */
+    private final ExecutorService executor;
+    private final Semaphore crawlerLimit;
+
     public WebCrawler(HTMLFetcher<?> htmlFetcher, ReportGenerator reportGenerator) {
         this.htmlFetcher = htmlFetcher;
         this.reportGenerator = reportGenerator;
@@ -45,6 +43,9 @@ public class WebCrawler implements AutoCloseable {
         deadLinkTracker = new DeadLinkTracker();
         crawlController = new CrawlController();
         linkValidator = new LinkValidator();
+
+        executor = Executors.newVirtualThreadPerTaskExecutor();
+        crawlerLimit = new Semaphore(CONCURRENT_CRAWL_LIMIT);
     }
 
     public void crawl(String link) {
@@ -68,28 +69,48 @@ public class WebCrawler implements AutoCloseable {
     }
 
     private CompletableFuture<Void> crawlPageAsync(String pageLink, int depth, Set<String> domains) {
-        var executor = Executors.newVirtualThreadPerTaskExecutor();
-        return CompletableFuture.runAsync(() -> {
-            Page page = null;
-            try {
-                page = attemptToCrawlPage(pageLink, depth, domains);
-            } catch (DeadLinkException _) {
-                deadLinkTracker.addDeadLink(pageLink);
-            } catch (AlreadyCrawledException | DomainNotAllowedException | MalformedLinkException e) {
-                LOGGER.log(Level.INFO, "Skipping link: {0} due to: {1}", new String[]{pageLink, e.getClass().getSimpleName()});
-            } catch (InvalidDepthException _) {
-                LOGGER.log(Level.FINEST, "Invalid depth: {0}", depth);
-            }
+        return CompletableFuture.supplyAsync(() -> fetchAndProcessPage(pageLink, depth, domains), executor)
+                .thenCompose(page -> processFetchedPageAndCrawlChildren(page, depth, domains));
+    }
 
-            Optional<List<String>> newlyFoundLinks = pageProcessor.process(page, depth);
-            newlyFoundLinks.ifPresent(links -> {
-                List<CompletableFuture<Void>> childTasks = links.stream()
-                        .map(link -> crawlPageAsync(link, depth - 1, domains))
-                        .toList();
+    private Page fetchAndProcessPage(String pageLink, int depth, Set<String> domains) {
+        try {
+            crawlerLimit.acquire();
+            return attemptToCrawlPage(pageLink, depth, domains);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOGGER.log(Level.WARNING, "Thread interrupted during semaphore acquire for link: {0}", pageLink);
+            throw new CompletionException(e);
+        } catch (DeadLinkException _) {
+            deadLinkTracker.addDeadLink(pageLink);
+            return null;
+        } catch (AlreadyCrawledException | DomainNotAllowedException | MalformedLinkException e) {
+            LOGGER.log(Level.INFO, "Skipping link: {0} due to: {1}", new String[]{pageLink, e.getClass().getSimpleName()});
+            return null;
+        } catch (InvalidDepthException _) {
+            LOGGER.log(Level.FINEST, "Invalid depth: {0}", depth);
+            return null;
+        } finally {
+            crawlerLimit.release();
+        }
+    }
 
-                CompletableFuture.allOf(childTasks.toArray(new CompletableFuture[0])).join();
-            });
-        }, executor);
+    private CompletableFuture<Void> processFetchedPageAndCrawlChildren(Page page, int depth, Set<String> domains) {
+        if (page == null) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        Optional<List<String>> newlyFoundLinks = pageProcessor.process(page, depth);
+        return newlyFoundLinks
+                .map(strings -> crawlChildLinksAsync(strings, depth - 1, domains))
+                .orElseGet(() -> CompletableFuture.completedFuture(null));
+    }
+
+    private CompletableFuture<Void> crawlChildLinksAsync(List<String> links, int newDepth, Set<String> domains) {
+        List<CompletableFuture<Void>> childTasks = links.stream()
+                .map(link -> crawlPageAsync(link, newDepth, domains))
+                .toList();
+        return CompletableFuture.allOf(childTasks.toArray(new CompletableFuture[0]));
     }
 
     private Page attemptToCrawlPage(String pageLink, int depth, Set<String> domains) throws DeadLinkException, InvalidDepthException, AlreadyCrawledException, DomainNotAllowedException, MalformedLinkException {
@@ -116,7 +137,6 @@ public class WebCrawler implements AutoCloseable {
             throw new DeadLinkException();
         }
     }
-
 
     public void close() {
         Set<String> deadLinks = deadLinkTracker.getDeadLinks();
