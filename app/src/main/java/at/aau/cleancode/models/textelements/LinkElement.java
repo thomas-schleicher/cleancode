@@ -7,11 +7,6 @@ public class LinkElement extends TextElement {
 
     /**
      * Links are always assumed to be alive unless they are explicitly changed to be dead.
-     *
-     * @param elementName
-     * @param elementDepth
-     * @param textContent
-     * @param href
      */
     public LinkElement(String elementName, int elementDepth, String textContent, String href) {
         super(elementName, elementDepth, textContent);

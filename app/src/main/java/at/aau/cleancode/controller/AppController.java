@@ -91,9 +91,9 @@ public class AppController {
         boolean valid = false;
         try {
             valid = DepthValidator.isValidDepth(input);
-        } catch (InvalidDepthException e) {
+        } catch (InvalidDepthException _) {
             ui.printMessage("Invalid depth, using default depth.");
-        } catch (NullPointerException e) {
+        } catch (NullPointerException _) {
             ui.printMessage("Using default depth.");
 
         }

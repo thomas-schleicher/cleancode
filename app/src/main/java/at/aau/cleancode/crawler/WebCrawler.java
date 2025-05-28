@@ -114,6 +114,19 @@ public class WebCrawler implements AutoCloseable {
     }
 
     private Page attemptToCrawlPage(String pageLink, int depth, Set<String> domains) throws DeadLinkException, InvalidDepthException, AlreadyCrawledException, DomainNotAllowedException, MalformedLinkException {
+        validateCrawlParameters(pageLink, depth, domains);
+        crawlController.addToVisitedLinks(pageLink);
+
+        try {
+            LOGGER.log(Level.INFO, "Crawling -> {0}", pageLink);
+            return this.htmlFetcher.fetchPage(pageLink);
+        } catch (IOException _) {
+            LOGGER.log(Level.WARNING, "Crawling failed for: {0}", pageLink);
+            throw new DeadLinkException();
+        }
+    }
+
+    private void validateCrawlParameters(String pageLink, int depth, Set<String> domains) throws InvalidDepthException, MalformedLinkException, AlreadyCrawledException, DomainNotAllowedException {
         if (!DepthValidator.isValidDepth(depth)) {
             throw new InvalidDepthException();
         }
@@ -125,16 +138,6 @@ public class WebCrawler implements AutoCloseable {
         }
         if (crawlController.isLinkInvalidForDomains(pageLink, domains)) {
             throw new DomainNotAllowedException();
-        }
-
-        crawlController.addToVisitedLinks(pageLink);
-
-        try {
-            LOGGER.log(Level.INFO, "Crawling -> {0}", pageLink);
-            return this.htmlFetcher.fetchPage(pageLink);
-        } catch (IOException _) {
-            LOGGER.log(Level.WARNING, "Crawling failed for: {0}", pageLink);
-            throw new DeadLinkException();
         }
     }
 
