@@ -16,7 +16,6 @@ public class PageProcessor {
     }
 
     public Optional<List<String>> process(Page page, int pageDepth) {
-        //TODO: write new tests for process
         if (page == null) {
             return Optional.empty();
         }

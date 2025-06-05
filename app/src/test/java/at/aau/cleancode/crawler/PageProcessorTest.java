@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -23,7 +24,7 @@ class PageProcessorTest {
 
     @Test
     void process() {
-        int arbitraryDepth = 1;
+        int arbitraryPageDepth = 1;
 
         String link = "https://www.google.com";
         LinkElement linkElement = mock(LinkElement.class);
@@ -32,17 +33,15 @@ class PageProcessorTest {
         Page page = mock(Page.class);
         when(page.getTextElements()).thenReturn(List.of(linkElement));
 
-        @SuppressWarnings("unchecked")
-        Consumer<String> consumer = mock(Consumer.class);
+        Optional<List<String>> result = processor.process(page, arbitraryPageDepth);
 
-        processor.process(page, arbitraryDepth);
-
+        Assertions.assertTrue(result.isPresent());
+        Assertions.assertEquals(List.of(link), result.get());
         Assertions.assertEquals(1, processor.getProcessedPages().size());
         Assertions.assertEquals(page, processor.getProcessedPages().getFirst());
 
         verify(linkElement, times(1)).getHref();
-        verify(page, times(1)).setPageCrawlDepth(arbitraryDepth);
-        verify(consumer).accept(link);
+        verify(page, times(1)).setPageCrawlDepth(arbitraryPageDepth);
     }
 
     @Test
@@ -58,9 +57,6 @@ class PageProcessorTest {
         Page page = mock(Page.class);
         when(page.getTextElements()).thenReturn(List.of(linkElementAlive, linkElementDead));
 
-        @SuppressWarnings("unchecked")
-        Consumer<String> consumer = mock(Consumer.class);
-
         processor.process(page, 1);
 
         Set<String> deadLinks = Set.of(deadLink);
@@ -70,8 +66,6 @@ class PageProcessorTest {
         verify(linkElementDead, times(2)).getHref();
         verify(linkElementAlive, times(0)).setLinkDead();
         verify(linkElementDead, times(1)).setLinkDead();
-        verify(consumer).accept(aliveLink);
-        verify(consumer).accept(deadLink);
     }
 
     @Test
