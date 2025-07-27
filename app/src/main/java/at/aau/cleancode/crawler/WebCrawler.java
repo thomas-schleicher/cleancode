@@ -114,8 +114,12 @@ public class WebCrawler implements AutoCloseable {
     }
 
     private Page attemptToCrawlPage(String pageLink, int depth, Set<String> domains) throws DeadLinkException, InvalidDepthException, AlreadyCrawledException, DomainNotAllowedException, MalformedLinkException {
+        if (!linkValidator.isLinkValid(pageLink)) {
+            throw new MalformedLinkException();
+        }
+
+        crawlController.markAsVisitedIfNotAlready(pageLink);
         validateCrawlParameters(pageLink, depth, domains);
-        crawlController.addToVisitedLinks(pageLink);
 
         try {
             LOGGER.log(Level.INFO, "Crawling -> {0}", pageLink);
@@ -126,15 +130,9 @@ public class WebCrawler implements AutoCloseable {
         }
     }
 
-    private void validateCrawlParameters(String pageLink, int depth, Set<String> domains) throws InvalidDepthException, MalformedLinkException, AlreadyCrawledException, DomainNotAllowedException {
+    private void validateCrawlParameters(String pageLink, int depth, Set<String> domains) throws InvalidDepthException, DomainNotAllowedException {
         if (!DepthValidator.isValidDepth(depth)) {
             throw new InvalidDepthException();
-        }
-        if (!linkValidator.isLinkValid(pageLink)) {
-            throw new MalformedLinkException();
-        }
-        if (crawlController.isLinkAlreadyVisited(pageLink)) {
-            throw new AlreadyCrawledException();
         }
         if (crawlController.isLinkInvalidForDomains(pageLink, domains)) {
             throw new DomainNotAllowedException();

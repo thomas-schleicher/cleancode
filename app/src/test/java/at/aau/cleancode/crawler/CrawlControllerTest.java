@@ -1,5 +1,6 @@
 package at.aau.cleancode.crawler;
 
+import at.aau.cleancode.exceptions.AlreadyCrawledException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,9 +22,9 @@ class CrawlControllerTest {
     @Test
     void linkIsMarkedAsVisitedAfterAdding() {
         String sampleLink = "https://www.google.com";
-        Assertions.assertFalse(controller.isLinkAlreadyVisited(sampleLink));
-        controller.addToVisitedLinks(sampleLink);
-        Assertions.assertTrue(controller.isLinkAlreadyVisited(sampleLink));
+
+        Assertions.assertDoesNotThrow(() -> controller.markAsVisitedIfNotAlready(sampleLink));
+        Assertions.assertThrows(AlreadyCrawledException.class, () -> controller.markAsVisitedIfNotAlready(sampleLink));
     }
 
     @ParameterizedTest

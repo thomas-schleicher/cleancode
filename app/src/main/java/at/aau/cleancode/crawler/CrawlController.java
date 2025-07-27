@@ -1,5 +1,7 @@
 package at.aau.cleancode.crawler;
 
+import at.aau.cleancode.exceptions.AlreadyCrawledException;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Set;
@@ -12,16 +14,11 @@ public class CrawlController {
     private static final Logger LOGGER = Logger.getLogger(CrawlController.class.getName());
     private final Set<String> visitedUrls = ConcurrentHashMap.newKeySet();
 
-    public boolean isLinkAlreadyVisited(String url) {
-        if (visitedUrls.contains(url)) {
+    public void markAsVisitedIfNotAlready(String url) throws AlreadyCrawledException {
+        if (!visitedUrls.add(url)) {
             LOGGER.log(Level.INFO, "URL was already crawled: {0}", url);
-            return true;
+            throw new AlreadyCrawledException();
         }
-        return false;
-    }
-
-    public void addToVisitedLinks(String url) {
-        visitedUrls.add(url);
     }
 
     public boolean isLinkInvalidForDomains(String url, Set<String> domains) {
