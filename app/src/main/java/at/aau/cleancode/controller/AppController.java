@@ -24,19 +24,23 @@ public class AppController {
 
     public void start() {
         String initialAction = promptInitialUserAction();
+        if ("crawl".equalsIgnoreCase(initialAction) || "1".equals(initialAction)) {
+            createAndRunCrawler();
+        }
+        exitApplication();
+    }
+
+    private void createAndRunCrawler() {
         String url = getValidUrlFromUser();
         Set<String> domains = getDomainsFromUser();
         int depth = getValidDepthFromUser();
-        if ("crawl".equalsIgnoreCase(initialAction) || "1".equals(initialAction)) {
-            try (WebCrawler crawler = createWebCrawler()) {
-                if (depth == -1) {
-                    crawler.crawl(url, domains);
-                } else {
-                    crawler.crawl(url, depth, domains);
-                }
+
+        try (WebCrawler crawler = createWebCrawler()) {
+            if (depth == -1) {
+                crawler.crawl(url, domains);
+            } else {
+                crawler.crawl(url, depth, domains);
             }
-        } else {
-            exitApplication();
         }
     }
 
@@ -54,7 +58,6 @@ public class AppController {
         ui.close();
         System.exit(0);
     }
-
 
     private WebCrawler createWebCrawler() throws IllegalStateException {
         String fileName = getValidFileNameFromUser();
