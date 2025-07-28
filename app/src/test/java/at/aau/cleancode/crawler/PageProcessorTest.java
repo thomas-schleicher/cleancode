@@ -9,6 +9,9 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 import static org.mockito.Mockito.*;
@@ -86,5 +89,30 @@ class PageProcessorTest {
         Assertions.assertEquals(page2, processedPages.get(1));
 
         verify(consumer, times(0)).accept(anyString());
+    }
+
+    @Test
+    void testConcurrentProcess() throws InterruptedException {
+        int threadCount = 10;
+        int pagesPerThread = 20;
+        int expectedPageCount = threadCount * pagesPerThread;
+
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        try (ExecutorService executor = Executors.newFixedThreadPool(threadCount)) {
+            for (int t = 0; t < threadCount; t++) {
+                executor.submit(() -> {
+                    for (int i = 0; i < pagesPerThread; i++) {
+                        Page page = new Page("https://site" + i + ".com");
+                        processor.process(page, 1);
+                    }
+                    latch.countDown();
+                });
+            }
+            latch.await();
+            executor.shutdown();
+        }
+
+        Assertions.assertEquals(expectedPageCount, processor.getProcessedPages().size());
     }
 }

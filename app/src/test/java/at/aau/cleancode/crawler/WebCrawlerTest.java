@@ -26,8 +26,6 @@ class WebCrawlerTest {
         crawler = new WebCrawler(fetcher, reportGenerator);
     }
 
-    //TODO: Test for different crawl parameters
-
     @Test
     void crawl() throws IOException {
         String parentLink = "https://www.google.com";

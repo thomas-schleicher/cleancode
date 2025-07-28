@@ -9,6 +9,10 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class CrawlControllerTest {
 
@@ -55,4 +59,39 @@ class CrawlControllerTest {
     void linkShouldBeValidWhenDomainSetIsNull(String link) {
         Assertions.assertFalse(controller.isLinkInvalidForDomains(link, null));
     }
+
+    @Test
+    void testConcurrentMarkAsVisited() throws InterruptedException {
+        int threadCount = 20;
+        int totalUrls = 100;
+        int duplicateModulo = 10;
+
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        AtomicInteger alreadyVisitedCount = new AtomicInteger(0);
+
+        try (ExecutorService executor = Executors.newFixedThreadPool(threadCount)) {
+            for (int t = 0; t < threadCount; t++) {
+                executor.submit(() -> {
+                    for (int i = 0; i < totalUrls; i++) {
+                        // force links to be already visited (as long as totalUrls > duplicateModulo)
+                        String url = "https://site" + (i % duplicateModulo) + ".com";
+                        try {
+                            controller.markAsVisitedIfNotAlready(url);
+                        } catch (AlreadyCrawledException _) {
+                            alreadyVisitedCount.incrementAndGet();
+                        }
+                    }
+                    latch.countDown();
+                });
+            }
+
+            latch.await();
+            executor.shutdown();
+        }
+
+        // here the duplicateModulo represents the count of possible unique urls
+        int expectedAmountOfAlreadyVisitedLinks = (totalUrls * threadCount) - duplicateModulo;
+        Assertions.assertEquals(expectedAmountOfAlreadyVisitedLinks, alreadyVisitedCount.get());
+    }
+
 }
