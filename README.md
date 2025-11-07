@@ -1,3 +1,6 @@
+# Description
+This project is a simple web crawler implemented in Java, designed with a strong focus on clean code principles. The architecture emphasizes abstraction, design patterns, and software design principles to ensure readability, maintainability, and scalability.
+
 # Group Members
 - Thomas Schleicher
 - Florian Hager
@@ -16,3 +19,4 @@ Make sure you are in the project directory and execute the action you want using
 ```bash
   gradle run
 ```
+
